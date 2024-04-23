@@ -9,6 +9,9 @@ using namespace std;
 double euclideanDistance(const vector<double>& v1, const vector<double>& v2) {
     double sum = 0.0;
     for (long long i = 0; i < v1.size(); ++i) {
+        if(v1[i] == -1 || v2[i] == -1){
+            continue;
+        }
         sum += pow(v1[i] - v2[i], 2);
     }
     return sqrt(sum);
@@ -150,37 +153,41 @@ int main() {
     long long numUsers = personNames.size();
 
     
-    for (long long i = 0; i < numUsers; ++i) {
-        for (long long j = i + 1; j < numUsers; ++j) {
-            double manhattanDist = manhattanDistance(transposedData[i], transposedData[j]);
-            double euclideanDist = euclideanDistance(transposedData[i], transposedData[j]);
-            cout << "Usuario " << personNames[i] << " and Usuario " << personNames[j] << ":\n";
+    
+    int userIndex = 18;
+
+    
+        for (long long j = userIndex + 1; j < numUsers; ++j) {
+            double manhattanDist = manhattanDistance(transposedData[userIndex], transposedData[j]);
+            double euclideanDist = euclideanDistance(transposedData[userIndex], transposedData[j]);
+            cout << "Usuario " << personNames[userIndex] << " and Usuario " << personNames[j] << ":\n";
             cout << "Manhattan Distance: " << manhattanDist << endl;
             cout << "Euclidean Distance: " << euclideanDist << endl;
             cout << endl;
         }
-    }
-    int userIndex = 18;
-
-   
+    
     int k = 3; 
     vector<pair<long, double>> nearestNeighbors = findKNearestNeighbors(transposedData, userIndex, k);
 
     
     cout << "K Nearest Neighbors para el Usuario " << personNames[userIndex] << ":" << endl;
     for (const auto& neighbor : nearestNeighbors) {
-        int mayor = 0;
+        int mayor = 3;
         int index = 0;
         int val = 0;
-        cout << "User " << personNames[neighbor.first] << " - Distance: " << neighbor.second << endl;
         for (auto value : transposedData[neighbor.first]) {
-            if(value>mayor){
+            if (value > mayor && transposedData[userIndex][index] == -1) { // Verifica que el usuario objetivo no haya visto la película
                 mayor = value;
                 val = index;
             }
             index++;
+    }
+        if (mayor > 3) { 
+            cout << "Recomendacion " << personNames[neighbor.first] << ": " << movies[val] << endl;
+        } else {
+            cout << "No hay recomendaciones de peliculas nuevas para este usuario " <<personNames[neighbor.first]<< endl;
         }
-        cout<<"Recomendacion "<<personNames[index]<<": "<<movies[val]<<endl;
+        
     }
     
     file.close(); 
