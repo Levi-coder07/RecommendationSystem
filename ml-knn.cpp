@@ -152,7 +152,7 @@ vector<pair<int, double>> findKNearestNeighbors(int userId, int k) {
     for (const auto& [otherUserId, ratings] : userRatings) {
         if (otherUserId != userId) {
            
-            double distance = euclideanDistance(userRatings[userId], ratings);
+            double distance = pearsonCorrelation(userRatings[userId], ratings);
             if(distance>0){
                 neighbors.push_back({otherUserId, distance});
             }
@@ -253,17 +253,17 @@ int main() {
     int userId = 3;
     int k = 5; // Número de vecinos más cercanos a encontrar
 
-    //vector<pair<int, double>> nearestNeighbors = findKNearestNeighbors(userId, k);
+    vector<pair<int, double>> nearestNeighbors = findKNearestNeighbors(userId, k);
    
 
 
-    //cout << "K Nearest Neighbors para el usuario " << userId << ":" << endl;
-    /*for (const auto& [neighborId, distance] : nearestNeighbors) {
+    cout << "K Nearest Neighbors para el usuario " << userId << ":" << endl;
+    for (const auto& [neighborId, distance] : nearestNeighbors) {
         int count = 0;
         for (auto [movie, rating] : userRatings[neighborId]) {
             // Verificar si el usuario actual ha calificado la película recomendada
             if (!containsMovie(userRatings[userId], movie) && rating > 4) {
-                //std::cout << "User " << neighborId << " movie: " << movies[movie] <<" rating : "<<rating<< std::endl;
+                std::cout << "User " << neighborId << " movie: " << movies[movie] <<" rating : "<<rating<< std::endl;
                 count++;
                 // Salir del bucle si se han hecho suficientes recomendaciones
                 if (count >= 1) {
@@ -271,7 +271,7 @@ int main() {
                 }
             }
         }
-    }*/
+    }
     
     file.close(); 
     return 0;

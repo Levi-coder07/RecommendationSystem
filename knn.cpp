@@ -4,8 +4,9 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include <functional>
 using namespace std;
-
+using DistanceFunction = std::function<double(const vector<pair<int, double>>&, const vector<pair<int, double>>&)>;
 double euclideanDistance(const vector<double>& v1, const vector<double>& v2) {
     double sum = 0.0;
     for (long long i = 0; i < v1.size(); ++i) {
@@ -66,23 +67,6 @@ vector<vector<double>> transpose(const vector<vector<double>>& matrix) {
     }
     return result;
 }
-vector<pair<long, double>> findKNearestNeighbors(const vector<vector<double>>& data, long userIndex, long k) {
-    vector<pair<long, double>> neighbors; // Guardar el par (index,distancia)
-    for (long i = 0; i < data.size(); ++i) {
-        if (i != userIndex) {
-            double dist = euclideanDistance(data[userIndex], data[i]);
-            neighbors.push_back({i, dist});
-        }
-    }
-    
-    sort(neighbors.begin(), neighbors.end(), [](const pair<long, double>& a, const pair<long, double>& b) {
-        return a.second < b.second;
-    });
-    if (neighbors.size() > k) {
-        neighbors.resize(k);
-    }
-    return neighbors;
-}
 double cosineSimilarity(const vector<double>& v1, const vector<double>& v2) {
     double dotProduct = 0.0, mag1 = 0.0, mag2 = 0.0;
     for (long long i = 0; i < v1.size(); ++i) {
@@ -102,6 +86,39 @@ double cosineSimilarity(const vector<double>& v1, const vector<double>& v2) {
 
     return dotProduct / (mag1 * mag2);
 }
+vector<pair<long, double>> findKNearestNeighbors(const vector<vector<double>>& data, long userIndex, long k,int p) {
+    vector<pair<long, double>> neighbors; // Guardar el par (index,distancia)
+    for (long i = 0; i < data.size(); ++i) {
+        if (i != userIndex) {
+            if(p==0){
+                double dist = euclideanDistance(data[userIndex], data[i]);
+                neighbors.push_back({i, dist});
+            }else if(p==1){
+                double dist = manhattanDistance(data[userIndex], data[i]);
+                neighbors.push_back({i, dist});
+            }
+            else if(p==2){
+                double dist = pearsonCorrelation(data[userIndex], data[i]);
+                neighbors.push_back({i, dist});
+            }
+            else{
+                double dist = cosineSimilarity(data[userIndex], data[i]);
+                neighbors.push_back({i, dist});
+            }
+            
+        }
+    }
+    
+    sort(neighbors.begin(), neighbors.end(), [](const pair<long, double>& a, const pair<long, double>& b) {
+        return a.second < b.second;
+    });
+    if (neighbors.size() > k) {
+        neighbors.resize(k);
+    }
+    return neighbors;
+}
+
+
 int main() {
     ifstream file("D:\\Ciencia_Datos\\Movie_Ratings.csv");
     if (!file.is_open()) {
@@ -207,12 +224,13 @@ int main() {
     valu= std::distance(personNames.begin(), it);
     }
     int k = 3; 
-    vector<pair<long, double>> nearestNeighbors = findKNearestNeighbors(transposedData, valu, k);
-
     
-    cout << "K Nearest Neighbors para el Usuario " << personNames[valu] << ":" << endl;
-    for (const auto& neighbor : nearestNeighbors) {
-        int mayor = 3;
+    vector<string> distances = {"Euclidian" , "Mahanttan" , "Pearson ", "COsine"};
+    for(int i = 0;i<4;i++){
+        vector<pair<long, double>> nearestNeighbors = findKNearestNeighbors(transposedData, valu,k, i);
+        cout<<"Usando : "<<distances[i]<<endl;
+        for (const auto& neighbor : nearestNeighbors) {
+        int mayor = 2;
         int index = 0;
         int val = 0;
         for (auto value : transposedData[neighbor.first]) {
@@ -222,13 +240,16 @@ int main() {
             }
             index++;
     }
-        if (mayor > 3) { 
-            cout << "Recomendacion " << personNames[neighbor.first] << ": " << movies[val] << endl;
+        if (mayor > 2) { 
+            cout << "Recomendacion " << personNames[neighbor.first] << neighbor.first <<": " << movies[val] <<"con "<<distances[i] <<" : "<<neighbor.second<< endl;
         } else {
-            cout << "No hay recomendaciones de peliculas nuevas para este usuario " <<personNames[neighbor.first]<< endl;
+            cout << "No hay recomendaciones de peliculas nuevas para este usuario " <<personNames[neighbor.first]  << neighbor.first<<" : "<< neighbor.second<< endl;
         }
         
     }
+    }
+    cout << "K Nearest Neighbors para el Usuario " << personNames[valu] << ":" << endl;
+    
     
     file.close(); 
     return 0;
