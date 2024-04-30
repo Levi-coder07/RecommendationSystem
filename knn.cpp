@@ -20,6 +20,9 @@ double euclideanDistance(const vector<double>& v1, const vector<double>& v2) {
 double manhattanDistance(const vector<double>& v1, const vector<double>& v2) {
     double sum = 0.0;
     for (long long i = 0; i < v1.size(); ++i) {
+        if(v1[i] == -1 || v2[i] == -1){
+            continue;
+        }
         sum += abs(v1[i] - v2[i]);
     }
     return sum;
@@ -30,6 +33,9 @@ double pearsonCorrelation(const vector<double>& v1, const vector<double>& v2) {
     long long n = v1.size();
 
     for (long long i = 0; i < n; ++i) {
+        if(v1[i] == -1 || v2[i] == -1){
+            continue;
+        }
         sumXY += v1[i] * v2[i];
         sumX += v1[i];
         sumY += v2[i];
@@ -77,7 +83,25 @@ vector<pair<long, double>> findKNearestNeighbors(const vector<vector<double>>& d
     }
     return neighbors;
 }
+double cosineSimilarity(const vector<double>& v1, const vector<double>& v2) {
+    double dotProduct = 0.0, mag1 = 0.0, mag2 = 0.0;
+    for (long long i = 0; i < v1.size(); ++i) {
+        if(v1[i] == -1 || v2[i] == -1){
+            continue;
+        }
+        dotProduct += v1[i] * v2[i];
+        mag1 += v1[i] * v1[i];
+        mag2 += v2[i] * v2[i];
+    }
+    mag1 = sqrt(mag1);
+    mag2 = sqrt(mag2);
 
+    if (mag1 == 0 || mag2 == 0) {
+        return 0; // Evitar división por cero
+    }
+
+    return dotProduct / (mag1 * mag2);
+}
 int main() {
     ifstream file("D:\\Ciencia_Datos\\Movie_Ratings.csv");
     if (!file.is_open()) {
@@ -136,47 +160,63 @@ int main() {
     
     long long numMovies = data.size();
     vector<vector<double>> transposedData = transpose(data);
-    for (const auto& row : transposedData) {
-        for (double value : row) {
-            cout << value << " ";
-        }
-        cout << endl;
-    }
-    for (long long i = 0; i < numMovies; ++i) {
-        for (long long j = i + 1; j < numMovies; ++j) {
-            double pearsonCorr = pearsonCorrelation(data[i], data[j]);
-            cout << "Movie " << movies[i] << " y Movie " << movies[j] << ":\n";
-            cout << "Pearson Correlation: " << pearsonCorr << endl;
-            cout << endl;
-        }
-    }
+    
     long long numUsers = personNames.size();
-
+    string name1 , name2;
+    int userIndex = 0;
+    int otherIndex = 0;
+    cin>>name1>>name2;
+    auto it = std::find(personNames.begin(), personNames.end(), name1);
+    if (it == personNames.end())
+    {
+        cout<<"Name not found";
+    } else
+    {
+    userIndex = std::distance(personNames.begin(), it);
+    }
+    it = std::find(personNames.begin(), personNames.end(), name2);
+    if (it == personNames.end())
+    {
+        cout<<"Name not found";
+    } else
+    {
+    otherIndex = std::distance(personNames.begin(), it);
+    }
     
     
-    int userIndex = 18;
-
-    
-        for (long long j = userIndex + 1; j < numUsers; ++j) {
-            double manhattanDist = manhattanDistance(transposedData[userIndex], transposedData[j]);
-            double euclideanDist = euclideanDistance(transposedData[userIndex], transposedData[j]);
-            cout << "Usuario " << personNames[userIndex] << " and Usuario " << personNames[j] << ":\n";
-            cout << "Manhattan Distance: " << manhattanDist << endl;
-            cout << "Euclidean Distance: " << euclideanDist << endl;
-            cout << endl;
-        }
-    
+        
+    double manhattanDist = manhattanDistance(transposedData[userIndex], transposedData[otherIndex]);
+    double euclideanDist = euclideanDistance(transposedData[userIndex], transposedData[otherIndex]);
+    double pearsonCorr = pearsonCorrelation(transposedData[userIndex], data[otherIndex]);
+    double cosineSim = cosineSimilarity(transposedData[userIndex], transposedData[otherIndex]);
+    cout << "Usuario " << personNames[userIndex] << " and Usuario " << personNames[otherIndex] << ":\n";
+    cout << "Manhattan : " << manhattanDist << endl;
+    cout << "Euclidean : " << euclideanDist << endl;
+    cout << "Pearson Correlation: " << pearsonCorr << endl;
+    cout << "Similiradidad Coseno: " << cosineSim << endl;
+    cout << endl;
+    string knn;
+    cin>>knn;
+    int valu;
+    it = std::find(personNames.begin(), personNames.end(), knn);
+    if (it == personNames.end())
+    {
+        cout<<"Name not found";
+    } else
+    {
+    valu= std::distance(personNames.begin(), it);
+    }
     int k = 3; 
-    vector<pair<long, double>> nearestNeighbors = findKNearestNeighbors(transposedData, userIndex, k);
+    vector<pair<long, double>> nearestNeighbors = findKNearestNeighbors(transposedData, valu, k);
 
     
-    cout << "K Nearest Neighbors para el Usuario " << personNames[userIndex] << ":" << endl;
+    cout << "K Nearest Neighbors para el Usuario " << personNames[valu] << ":" << endl;
     for (const auto& neighbor : nearestNeighbors) {
         int mayor = 3;
         int index = 0;
         int val = 0;
         for (auto value : transposedData[neighbor.first]) {
-            if (value > mayor && transposedData[userIndex][index] == -1) { // Verifica que el usuario objetivo no haya visto la película
+            if (value > mayor && transposedData[valu][index] == -1) { // Verifica que el usuario objetivo no haya visto la película
                 mayor = value;
                 val = index;
             }
